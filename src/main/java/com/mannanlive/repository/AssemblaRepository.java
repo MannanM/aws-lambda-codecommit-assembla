@@ -1,6 +1,5 @@
 package com.mannanlive.repository;
 
-import com.amazonaws.services.codecommit.model.Commit;
 import com.mannanlive.domain.AssemblaComment;
 import com.mannanlive.domain.AssemblaStatus;
 import org.glassfish.jersey.client.JerseyClientBuilder;
@@ -27,27 +26,22 @@ public class AssemblaRepository {
         this.apiSecret = apiSecret;
     }
 
-    public boolean addComment(Long id, final String region, Commit commit) {
-        final String message = String.format("%s has [[url:https://%s.console.aws.amazon.com/codesuite/codecommit/" +
-                        "repositories/roster-portal/commit/%s?region=%s|committed a change]] related to this ticket: " +
-                        "<pre><code>%s</code></pre>",
-                commit.getAuthor().getName(), region, commit.getCommitId(), region, commit.getMessage());
-
+    public boolean addComment(final Long ticketId, final String comment) {
         try (Response response = TARGET
                 .path("/v1/spaces/")
                 .path(space)
                 .path("/tickets/")
-                .path(id.toString())
+                .path(ticketId.toString())
                 .path("ticket_comments.xml")
                 .request()
                 .header("X-Api-Key", apiKey)
                 .header("X-Api-Secret", apiSecret)
-                .post(Entity.json(new AssemblaComment(message)))) {
+                .post(Entity.json(new AssemblaComment(comment)))) {
             return successOrFailure(response);
         }
     }
 
-    public boolean updateStatus(Long ticketId, String status) {
+    public boolean updateStatus(final Long ticketId, final String status) {
         if (status != null) {
             try (Response response = TARGET
                     .path("/v1/spaces/")
@@ -64,7 +58,7 @@ public class AssemblaRepository {
         return false;
     }
 
-    private boolean successOrFailure(Response response) {
+    private boolean successOrFailure(final Response response) {
         if (response.getStatusInfo().getFamily() == Response.Status.Family.SUCCESSFUL) {
             return true;
         } else {

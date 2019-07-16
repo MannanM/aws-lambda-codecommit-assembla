@@ -23,7 +23,7 @@ public class TicketExtractorTest {
     }
 
     @Test
-    public void multiple2() {
+    public void multiple_no_actions() {
         final List<TicketAction> actual = TicketExtractor.extract("#321, #456");
         assertEquals(2, actual.size());
 
@@ -35,7 +35,7 @@ public class TicketExtractorTest {
     }
 
     @Test
-    public void multiple3() {
+    public void multiple_with_actions() {
         final List<TicketAction> actual = TicketExtractor.extract("Test #321, Complete #456");
         assertEquals(2, actual.size());
 
@@ -47,7 +47,7 @@ public class TicketExtractorTest {
     }
 
     @Test
-    public void multiple4() {
+    public void multiple_first_action() {
         final List<TicketAction> actual = TicketExtractor.extract("Test #321, #456");
         assertEquals(2, actual.size());
 
@@ -59,7 +59,7 @@ public class TicketExtractorTest {
     }
 
     @Test
-    public void multiple5() {
+    public void multiple_last_action() {
         final List<TicketAction> actual = TicketExtractor.extract("#321, Test #456");
         assertEquals(2, actual.size());
 

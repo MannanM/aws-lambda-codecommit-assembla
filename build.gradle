@@ -1,4 +1,6 @@
 import jp.classmethod.aws.gradle.lambda.AWSLambdaMigrateFunctionTask
+import jp.classmethod.aws.gradle.lambda.AWSLambdaUpdateFunctionCodeTask
+import jp.classmethod.aws.gradle.identitymanagement.AmazonIdentityManagementCreateRoleTask
 
 // grab the AWS plugin
 buildscript {
@@ -11,6 +13,7 @@ buildscript {
 }
 
 apply plugin: 'jp.classmethod.aws.lambda'
+apply plugin: 'jp.classmethod.aws.iam'
 
 // Apply the java plugin to add support for Java
 apply plugin: 'java'
@@ -55,40 +58,37 @@ aws {
     region = 'ap-southeast-2'
 }
 
-def doUpload(task, String name, String handler, String description = '') {
-    task.role = "arn:aws:iam::${aws.accountId}:role/lambda"
-    task.zipFile = jar.archivePath
-    task.memorySize = 128
-    task.timeout = 60
-    task.runtime = 'java8'
-    task.functionName = name
-    task.environment = [
-        SPACE: "",
-        API_KEY: "",
-        API_SECRET: "",
-    ]
-    task.handler = "com.mannanlive.handler.${handler}::handleRequest"
-    task.description = description
+task createRole(type: AmazonIdentityManagementCreateRoleTask) {
+    doFirst {
+        roleName = 'lambda-codecommit'
+        assumeRolePolicyDocument = '{"Version": "2012-10-17", "Statement": [' +
+                '{"Effect": "Allow", "Principal": {"Service": "lambda.amazonaws.com"}, "Action":"sts:AssumeRole"}' +
+                ']}'
+        policyArns = ['arn:aws:iam::aws:policy/AWSCodeCommitReadOnly']
+    }
 }
 
-//task updateLambdaFunctionCode(type: AWSLambdaUpdateFunctionCodeTask) {
-//    functionName = "fooBar"
-//    zipFile = zip.archivePath
-//}
+task createLambda(type: AWSLambdaMigrateFunctionTask, dependsOn: jar) {
+    doFirst {
+        role = "arn:aws:iam::${aws.accountId}:role/lambda-codecommit"
+        zipFile = jar.archiveFile
+        memorySize = 128
+        timeout = 60
+        runtime = 'java8'
+        functionName = 'codecommit-lambda'
+        environment = [
+                SPACE     : '',
+                API_KEY   : '',
+                API_SECRET: '',
+        ]
+        handler = 'com.mannanlive.handler.CodeCommitHandler::handleRequest'
+        description = 'Updates project management tool when a new push is received'
+    }
+}
 
-// migrate or create the function to AWS
-//task migrateTimeQuery(type: AWSLambdaMigrateFunctionTask, dependsOn: jar) {
-//    doUpload delegate, 'query-date', 'TimeHandler', 'Get the current date plus any days.'
-//}
-//
-//task migrateSpaceQuery(type: AWSLambdaMigrateFunctionTask, dependsOn: jar) {
-//    doUpload delegate, 'query-space', 'SpaceHandler', 'Get the current space in the database.'
-//}
-//
-//task refreshAll << {
-//    println 'Migrated all tasks to AWS Lambda'
-//}
-//
-//refreshAll.dependsOn {
-//    tasks.findAll { task -> task.name.startsWith('migrate') }
-//}
+task updateLambda(type: AWSLambdaUpdateFunctionCodeTask, dependsOn: jar) {
+    doFirst {
+        functionName = 'codecommit-lambda'
+        zipFile = jar.archiveFile
+    }
+}

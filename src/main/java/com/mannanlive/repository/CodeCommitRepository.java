@@ -8,7 +8,7 @@ import com.amazonaws.services.codecommit.model.GetCommitRequest;
 public class CodeCommitRepository {
     private static final AWSCodeCommit CLIENT = AWSCodeCommitClientBuilder.defaultClient();
 
-    public Commit getCommit(String repositoryName, String commitId) {
+    public Commit getCommit(final String repositoryName, final String commitId) {
         return CLIENT.getCommit(
                 new GetCommitRequest()
                         .withRepositoryName(repositoryName)
