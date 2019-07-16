@@ -3,7 +3,8 @@ package com.mannanlive.domain;
 import com.amazonaws.services.codecommit.model.Commit;
 
 public abstract class CommentMessage {
-    private static final String AWS_CONSOLE_URL = "https://%s.console.aws.amazon.com/codesuite/codecommit/repositories/%s/commit/%s?region=%s";
+    private static final String AWS_CONSOLE_URL = "https://%s.console.aws.amazon.com/" +
+            "codesuite/codecommit/repositories/%s/commit/%s?region=%s";
 
     public static String create(final String region, final String repository, final Commit commit) {
         final String commitUrl = String.format(AWS_CONSOLE_URL, region, repository, commit.getCommitId(), region);

@@ -1,23 +1,30 @@
 package com.mannanlive.repository;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mannanlive.domain.AssemblaComment;
 import com.mannanlive.domain.AssemblaStatus;
-import org.glassfish.jersey.client.JerseyClientBuilder;
-import org.glassfish.jersey.client.JerseyWebTarget;
-
-import javax.ws.rs.client.Entity;
-import javax.ws.rs.core.Response;
+import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpEntityEnclosingRequestBase;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.client.methods.HttpPut;
+import org.apache.http.entity.StringEntity;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClients;
 
 public class AssemblaRepository {
-    private final JerseyWebTarget TARGET = JerseyClientBuilder.createClient().target("https://api.assembla.com");
+    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
+    private static final String URL = "https://api.assembla.com/v1/spaces/%s/tickets/%d";
+    private static final CloseableHttpClient client = HttpClients.createDefault();
+
     private final String space;
     private final String apiKey;
     private final String apiSecret;
 
     public AssemblaRepository() {
-        space = System.getProperty("SPACE");
-        apiKey = System.getProperty("API_KEY");
-        apiSecret = System.getProperty("API_SECRET");
+        space = System.getenv("SPACE");
+        apiKey = System.getenv("API_KEY");
+        apiSecret = System.getenv("API_SECRET");
+        System.out.println("Assembla WorkSpace: " + space);
     }
 
     public AssemblaRepository(final String space, final String apiKey, final String apiSecret) {
@@ -26,44 +33,32 @@ public class AssemblaRepository {
         this.apiSecret = apiSecret;
     }
 
-    public boolean addComment(final Long ticketId, final String comment) {
-        try (Response response = TARGET
-                .path("/v1/spaces/")
-                .path(space)
-                .path("/tickets/")
-                .path(ticketId.toString())
-                .path("ticket_comments.xml")
-                .request()
-                .header("X-Api-Key", apiKey)
-                .header("X-Api-Secret", apiSecret)
-                .post(Entity.json(new AssemblaComment(comment)))) {
-            return successOrFailure(response);
-        }
+    public boolean addComment(final long ticketId, final String comment) {
+        return sendRequest(new HttpPost(String.format(URL + "/ticket_comments.json", space, ticketId)),
+                new AssemblaComment(comment));
     }
 
-    public boolean updateStatus(final Long ticketId, final String status) {
-        if (status != null) {
-            try (Response response = TARGET
-                    .path("/v1/spaces/")
-                    .path(space)
-                    .path("/tickets")
-                    .path(ticketId.toString() + ".xml")
-                    .request()
-                    .header("X-Api-Key", apiKey)
-                    .header("X-Api-Secret", apiSecret)
-                    .put(Entity.json(new AssemblaStatus(status)))) {
-                return successOrFailure(response);
-            }
-        }
-        return false;
-    }
-
-    private boolean successOrFailure(final Response response) {
-        if (response.getStatusInfo().getFamily() == Response.Status.Family.SUCCESSFUL) {
-            return true;
+    public boolean updateStatus(final long ticketId, final String status) {
+        if (status == null) {
+            return false;
         } else {
-            System.out.println(String.format("Received response code %d with body %s",
-                    response.getStatus(), response.readEntity(String.class)));
+            return sendRequest(new HttpPut(String.format(URL + ".json", space, ticketId)), new AssemblaStatus(status));
+        }
+    }
+
+    private boolean sendRequest(final HttpEntityEnclosingRequestBase request, final Object payload) {
+        try {
+            request.setEntity(new StringEntity(OBJECT_MAPPER.writeValueAsString(payload)));
+            request.setHeader("Content-type", "application/json");
+            request.setHeader("X-Api-Key", apiKey);
+            request.setHeader("X-Api-Secret", apiSecret);
+
+            try (CloseableHttpResponse response = client.execute(request)) {
+                final int statusCode = response.getStatusLine().getStatusCode();
+                return statusCode >= 200 && statusCode < 300;
+            }
+        } catch (final Exception ex) {
+            System.out.println(ex.getMessage());
             return false;
         }
     }

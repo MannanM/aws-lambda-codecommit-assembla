@@ -8,7 +8,7 @@ buildscript {
         maven { url 'https://plugins.gradle.org/m2/' }
     }
     dependencies {
-        classpath 'jp.classmethod.aws:gradle-aws-plugin:0.30'
+        classpath 'jp.classmethod.aws:gradle-aws-plugin:0.37'
     }
 }
 
@@ -32,13 +32,8 @@ configurations {
 // In this section you declare the dependencies for your production and test code
 dependencies {
     provided 'com.amazonaws:aws-lambda-java-core:1.2.0'
-    provided 'com.amazonaws:aws-lambda-java-events:2.2.6'
+    compile 'com.amazonaws:aws-lambda-java-events:2.2.6'
     compile 'com.amazonaws:aws-java-sdk-codecommit:1.11.592'
-    compile 'com.amazonaws:aws-java-sdk-secretsmanager:1.11.592'
-
-    compile 'org.glassfish.jersey.core:jersey-client:2.29'
-    compile 'org.glassfish.jersey.inject:jersey-hk2:2.29'
-    compile 'org.glassfish.jersey.media:jersey-media-json-jackson:2.29'
 
     testCompile 'junit:junit:4.12'
     testCompile 'com.fasterxml.jackson.core:jackson-databind:2.9.9.1'
@@ -71,8 +66,8 @@ task createRole(type: AmazonIdentityManagementCreateRoleTask) {
 task createLambda(type: AWSLambdaMigrateFunctionTask, dependsOn: jar) {
     doFirst {
         role = "arn:aws:iam::${aws.accountId}:role/lambda-codecommit"
-        zipFile = jar.archiveFile
-        memorySize = 128
+        zipFile = jar.archiveFile.get().getAsFile()
+        memorySize = 256
         timeout = 60
         runtime = 'java8'
         functionName = 'codecommit-lambda'
@@ -89,6 +84,6 @@ task createLambda(type: AWSLambdaMigrateFunctionTask, dependsOn: jar) {
 task updateLambda(type: AWSLambdaUpdateFunctionCodeTask, dependsOn: jar) {
     doFirst {
         functionName = 'codecommit-lambda'
-        zipFile = jar.archiveFile
+        zipFile = jar.archiveFile.get().getAsFile()
     }
 }
