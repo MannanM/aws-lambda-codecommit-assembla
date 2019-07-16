@@ -1,0 +1,94 @@
+import jp.classmethod.aws.gradle.lambda.AWSLambdaMigrateFunctionTask
+
+// grab the AWS plugin
+buildscript {
+    repositories {
+        maven { url 'https://plugins.gradle.org/m2/' }
+    }
+    dependencies {
+        classpath 'jp.classmethod.aws:gradle-aws-plugin:0.30'
+    }
+}
+
+apply plugin: 'jp.classmethod.aws.lambda'
+
+// Apply the java plugin to add support for Java
+apply plugin: 'java'
+apply plugin: 'idea'
+
+// In this section you declare where to find the dependencies of your project
+repositories {
+    jcenter()
+}
+
+configurations {
+    provided
+    compile.extendsFrom provided
+}
+
+// In this section you declare the dependencies for your production and test code
+dependencies {
+    provided 'com.amazonaws:aws-lambda-java-core:1.2.0'
+    provided 'com.amazonaws:aws-lambda-java-events:2.2.6'
+    compile 'com.amazonaws:aws-java-sdk-codecommit:1.11.592'
+    compile 'com.amazonaws:aws-java-sdk-secretsmanager:1.11.592'
+
+    compile 'org.glassfish.jersey.core:jersey-client:2.29'
+    compile 'org.glassfish.jersey.inject:jersey-hk2:2.29'
+    compile 'org.glassfish.jersey.media:jersey-media-json-jackson:2.29'
+
+    testCompile 'junit:junit:4.12'
+    testCompile 'com.fasterxml.jackson.core:jackson-databind:2.9.9.1'
+}
+
+jar {
+    dependsOn configurations.runtime
+    from {
+        (configurations.runtime - configurations.provided).collect {
+            it.isDirectory() ? it : zipTree(it)
+        }
+    }
+}
+
+aws {
+    profileName = 'default'
+    region = 'ap-southeast-2'
+}
+
+def doUpload(task, String name, String handler, String description = '') {
+    task.role = "arn:aws:iam::${aws.accountId}:role/lambda"
+    task.zipFile = jar.archivePath
+    task.memorySize = 128
+    task.timeout = 60
+    task.runtime = 'java8'
+    task.functionName = name
+    task.environment = [
+        SPACE: "",
+        API_KEY: "",
+        API_SECRET: "",
+    ]
+    task.handler = "com.mannanlive.handler.${handler}::handleRequest"
+    task.description = description
+}
+
+//task updateLambdaFunctionCode(type: AWSLambdaUpdateFunctionCodeTask) {
+//    functionName = "fooBar"
+//    zipFile = zip.archivePath
+//}
+
+// migrate or create the function to AWS
+//task migrateTimeQuery(type: AWSLambdaMigrateFunctionTask, dependsOn: jar) {
+//    doUpload delegate, 'query-date', 'TimeHandler', 'Get the current date plus any days.'
+//}
+//
+//task migrateSpaceQuery(type: AWSLambdaMigrateFunctionTask, dependsOn: jar) {
+//    doUpload delegate, 'query-space', 'SpaceHandler', 'Get the current space in the database.'
+//}
+//
+//task refreshAll << {
+//    println 'Migrated all tasks to AWS Lambda'
+//}
+//
+//refreshAll.dependsOn {
+//    tasks.findAll { task -> task.name.startsWith('migrate') }
+//}
