@@ -2,9 +2,9 @@ package com.mannanlive.domain;
 
 public class TicketAction {
     private String action;
-    private Long ticketId;
+    private String ticketId;
 
-    public TicketAction(String action, Long ticketId) {
+    public TicketAction(final String action, final String ticketId) {
         this.action = action;
         this.ticketId = ticketId;
     }
@@ -13,7 +13,7 @@ public class TicketAction {
         return action;
     }
 
-    public Long getTicketId() {
+    public String getTicketId() {
         return ticketId;
     }
 }

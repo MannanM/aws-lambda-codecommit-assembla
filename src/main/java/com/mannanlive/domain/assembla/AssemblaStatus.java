@@ -1,4 +1,4 @@
-package com.mannanlive.domain;
+package com.mannanlive.domain.assembla;
 
 import java.util.HashMap;
 import java.util.Map;

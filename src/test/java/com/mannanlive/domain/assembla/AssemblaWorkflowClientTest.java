@@ -1,27 +1,27 @@
-package com.mannanlive.repository;
+package com.mannanlive.domain.assembla;
 
 import org.junit.Ignore;
 import org.junit.Test;
 
 import static org.junit.Assert.assertTrue;
 
-public class AssemblaRepositoryTest {
-    private static final long TICKET_ID = 1263L;
+public class AssemblaWorkflowClientTest {
+    private static final String TICKET_ID = "1263";
     private static final String SPACE = "your-space";
     private static final String API_KEY = "your-api-key";
     private static final String API_SECRET = "your-api-secret";
 
-    private final AssemblaRepository repo = new AssemblaRepository(SPACE, API_KEY, API_SECRET);
+    private final AssemblaWorkflowClient repo = new AssemblaWorkflowClient(API_KEY, API_SECRET);
 
     @Test
     @Ignore
     public void addComment() {
-        assertTrue(repo.addComment(TICKET_ID, "Test Message"));
+        assertTrue(repo.addComment(SPACE, TICKET_ID, "Test Message"));
     }
 
     @Test
     @Ignore
     public void updateStatus() {
-        assertTrue(repo.updateStatus(TICKET_ID, "Progress"));
+        assertTrue(repo.updateStatus(SPACE, TICKET_ID, "Progress"));
     }
 }

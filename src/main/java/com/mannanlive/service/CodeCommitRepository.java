@@ -1,4 +1,4 @@
-package com.mannanlive.repository;
+package com.mannanlive.service;
 
 import com.amazonaws.services.codecommit.AWSCodeCommit;
 import com.amazonaws.services.codecommit.AWSCodeCommitClientBuilder;

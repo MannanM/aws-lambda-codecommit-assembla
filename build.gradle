@@ -36,7 +36,7 @@ dependencies {
     compile 'com.amazonaws:aws-java-sdk-codecommit:1.11.592'
 
     testCompile 'junit:junit:4.12'
-    testCompile 'com.fasterxml.jackson.core:jackson-databind:2.9.9.1'
+    testCompile 'org.mockito:mockito-core:2.10.0'
 }
 
 jar {
@@ -72,11 +72,10 @@ task createLambda(type: AWSLambdaMigrateFunctionTask, dependsOn: jar) {
         runtime = 'java8'
         functionName = 'codecommit-lambda'
         environment = [
-                SPACE     : '',
                 API_KEY   : '',
                 API_SECRET: '',
         ]
-        handler = 'com.mannanlive.handler.CodeCommitHandler::handleRequest'
+        handler = 'com.mannanlive.CodeCommitHandler::handleRequest'
         description = 'Updates project management tool when a new push is received'
     }
 }
