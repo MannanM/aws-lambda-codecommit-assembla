@@ -24,14 +24,9 @@ repositories {
     jcenter()
 }
 
-configurations {
-    provided
-    compile.extendsFrom provided
-}
-
 // In this section you declare the dependencies for your production and test code
 dependencies {
-    provided 'com.amazonaws:aws-lambda-java-core:1.2.0'
+    compileOnly 'com.amazonaws:aws-lambda-java-core:1.2.0'
     compile 'com.amazonaws:aws-lambda-java-events:2.2.6'
     compile 'com.amazonaws:aws-java-sdk-codecommit:1.11.592'
 
@@ -42,7 +37,7 @@ dependencies {
 jar {
     dependsOn configurations.runtime
     from {
-        (configurations.runtime - configurations.provided).collect {
+        configurations.runtime.collect {
             it.isDirectory() ? it : zipTree(it)
         }
     }
@@ -59,7 +54,10 @@ task createRole(type: AmazonIdentityManagementCreateRoleTask) {
         assumeRolePolicyDocument = '{"Version": "2012-10-17", "Statement": [' +
                 '{"Effect": "Allow", "Principal": {"Service": "lambda.amazonaws.com"}, "Action":"sts:AssumeRole"}' +
                 ']}'
-        policyArns = ['arn:aws:iam::aws:policy/AWSCodeCommitReadOnly']
+        policyArns = [
+                'arn:aws:iam::aws:policy/AWSCodeCommitReadOnly',
+                'arn:aws:iam::aws:policy/AWSLambdaBasicExecutionRole'
+        ]
     }
 }
 

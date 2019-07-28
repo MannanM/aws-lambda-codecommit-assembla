@@ -35,11 +35,7 @@ public class AssemblaWorkflowClient implements WorkflowClient {
     }
 
     public boolean updateStatus(final String space, final String ticketId, final String status) {
-        if (status == null) {
-            return false;
-        } else {
-            return sendRequest(new HttpPut(String.format(URL + ".json", space, ticketId)), new AssemblaStatus(status));
-        }
+        return sendRequest(new HttpPut(String.format(URL + ".json", space, ticketId)), new AssemblaStatus(status));
     }
 
     private boolean sendRequest(final HttpEntityEnclosingRequestBase request, final Object payload) {

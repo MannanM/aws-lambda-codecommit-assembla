@@ -7,7 +7,7 @@ import static java.lang.String.format;
 
 public class TrelloComment extends WorkflowComment {
 
-    public TrelloComment(String region, String repositoryName) {
+    public TrelloComment(final String region, final String repositoryName) {
         super(region, repositoryName);
     }
 

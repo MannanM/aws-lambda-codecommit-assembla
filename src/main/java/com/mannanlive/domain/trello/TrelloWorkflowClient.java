@@ -19,6 +19,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 import static java.lang.String.format;
 
@@ -47,19 +48,19 @@ public class TrelloWorkflowClient implements WorkflowClient {
     }
 
     public boolean updateStatus(final String board, final String cardId, final String status) {
-        if (status == null) {
-            return false;
-        } else {
-            getStatuses(board).stream()
-                    .filter(boardList -> status.equalsIgnoreCase(boardList.getName()))
-                    .findFirst()
-                    .ifPresent(boardList -> {
-                        final URI url = createUrl("cards/" + cardId,
-                                new BasicNameValuePair("idList", boardList.getId()));
-                        sendRequest(new HttpPut(url));
-                    });
-            return true;
+        final Optional<TrelloBoardList> list = status(board, status);
+        if (list.isPresent()) {
+            final URI url = createUrl("cards/" + cardId,
+                    new BasicNameValuePair("idList", list.get().getId()));
+            return sendRequest(new HttpPut(url));
         }
+        return false;
+    }
+
+    private Optional<TrelloBoardList> status(final String board, final String status) {
+        return getStatuses(board).stream()
+                .filter(boardList -> status.equalsIgnoreCase(boardList.getName()))
+                .findFirst();
     }
 
     private List<TrelloBoardList> getStatuses(final String board) {
@@ -95,7 +96,7 @@ public class TrelloWorkflowClient implements WorkflowClient {
         }
     }
 
-    private URI createUrl(String format, NameValuePair... keys) {
+    private URI createUrl(final String format, final NameValuePair... keys) {
         try {
             return new URIBuilder(URL + format)
                     .setParameters(keys)

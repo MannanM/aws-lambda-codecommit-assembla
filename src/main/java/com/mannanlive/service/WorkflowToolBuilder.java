@@ -6,7 +6,7 @@ import com.mannanlive.domain.assembla.AssemblaWorkflowClient;
 import com.mannanlive.domain.trello.TrelloComment;
 import com.mannanlive.domain.trello.TrelloWorkflowClient;
 
-public class WorkflowToolFactory {
+public class WorkflowToolBuilder {
 
     public WorkflowTool create(final CodeCommitEvent.Record record) {
         final String[] segments = record.getCustomData().split(":");

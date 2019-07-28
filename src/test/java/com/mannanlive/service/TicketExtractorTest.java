@@ -22,7 +22,8 @@ public class TicketExtractorTest {
 
     @Test
     public void extract_different_regex() {
-        final List<TicketAction> actual = new TicketExtractor("-", "[a-z0-9]+").extract("blah -ajflj34304834 alkjfd");
+        final List<TicketAction> actual = new TicketExtractor("--", "[a-z0-9]+")
+                .extract("blah --ajflj34304834 alkjfd");
         assertEquals(1, actual.size());
         assertEquals("ajflj34304834", actual.get(0).getTicketId());
         assertEquals("blah", actual.get(0).getAction());

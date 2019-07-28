@@ -24,7 +24,7 @@ public class TicketExtractor {
         final Matcher matcher = regex.matcher(message);
         final List<String> results = new ArrayList<>();
         while (matcher.find()) {
-            results.add(matcher.group().substring(1));
+            results.add(matcher.group().substring(prefix.length()));
         }
         return results;
     }
